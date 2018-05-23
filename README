@@ -10,53 +10,45 @@ HOW TO BUILD QT5
 
     - Perl 5.8 or later
     - Python 2.7 or later
-    - C++ compiler supporting the C++98 standard
+    - C++ compiler supporting the C++11 standard
 
      For other platform specific requirements,
      please see section "Setting up your machine" on:
      http://wiki.qt.io/Get_The_Source
 
-   Optional requirements
-   ---------------------
+   Licensing:
+   ----------
 
-   - OpenSSL for SSL sockets or HTTPS
-   - Wayland
+    Opensource users:
 
-   New dependencies in Qt 5
-   ------------------------
+        <source_package> = qt-everywhere-opensource-src-<version>
+        <license>        = -opensource
 
-     Linux: On systems running X11, the XCB libraries are required for
-     the platform plugin to build. qtbase/src/plugins/platforms/xcb/README
-     lists the required packages.
+    Commercial users:
 
-     Qt 5 can make use of the ICU libraries providing Unicode and Globalization
-     support (see http://site.icu-project.org/). They are required for building
-     QtWebKit.
-     On Linux, they will be auto-detected.
-     On Windows, they need to be manually installed and the "include" and "lib"
-     folders of the ICU installation must be appended to the INCLUDE and LIB
-     environment variables after calling the Windows SDK setup script.
-     The "bin" folder of the ICU installation should be appended to the PATH
-     environment variable in order to for the DLLs to be found at run-time.
+        <source_package> = qt-everywhere-enterprise-src-<version>
+        <license>        = -commercial
 
    Linux, Mac:
    -----------
 
-     cd <path>/qt-everywhere-opensource-src-<version>
-     ./configure -prefix $PWD/qtbase -opensource -nomake tests
+     cd <path>/<source_package>
+     ./configure -prefix $PWD/qtbase <license> -nomake tests
      make -j 4
 
    Windows:
    --------
 
-     Open a Windows SDK (7.0, 7.1 or later) command prompt. Ensure that the
-     following tools can be found in the path:
+     Open a command prompt.
+     Ensure that the following tools can be found in the path:
+     * Supported compiler (Visual Studio 2012 or later,
+        MinGW-builds gcc 4.9 or later)
      * Perl version 5.12 or later   [http://www.activestate.com/activeperl/]
      * Python version 2.7 or later  [http://www.activestate.com/activepython/]
      * Ruby version 1.9.3 or later  [http://rubyinstaller.org/]
 
-     cd <path>\qt-everywhere-opensource-src-<version>
-     configure -prefix %CD%\qtbase -opensource -nomake tests
+     cd <path>\<source_package>
+     configure -prefix %CD%\qtbase <license> -nomake tests
      nmake // jom // mingw32-make
 
      To accelerate the bootstrap of qmake with MSVC, it may be useful to pass
@@ -81,13 +73,13 @@ HOW TO BUILD QT5
  Example for a release build:
  (adjust the `-jN' parameter as appropriate for your system)
 
-   ./configure -prefix $PWD/qtbase -opensource
+   ./configure -prefix $PWD/qtbase <license>
    make -j4
 
  Example for a developer build:
  (enables more autotests, builds debug version of libraries, ...)
 
-   ./configure -developer-build -opensource
+   ./configure -developer-build <license>
    make -j4
 
  See output of `./configure -help' for documentation on various options to
@@ -97,11 +89,11 @@ HOW TO BUILD QT5
  default in the build system.
 
  It is possible to build selected modules with their dependencies by doing
- a `make module-<foo>'.  For example, to build only qtscript and qtwebkit,
- and the modules they depend on:
+ a `make module-<foo>'.  For example, to build only qtdeclarative,
+ and the modules it depends on:
 
-   ./configure -prefix $PWD/qtbase -opensource
-   make -j4 module-qtscript module-qtwebkit
+   ./configure -prefix $PWD/qtbase <license>
+   make -j4 module-qtdeclarative
 
  This can save a lot of time if you are only interested in a subset of Qt5.
 
