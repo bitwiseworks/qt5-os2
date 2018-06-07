@@ -639,7 +639,7 @@ sub run
     chomp(my $url = `git config remote.origin.url`);
     die("Have no origin remote.\n") if (!$url);
     $url =~ s,\.git$,,;
-    $url =~ s/qt5$//;
+    $url =~ s,[^/]*$,,;
     $self->{'base-url'} = $url;
 
     $self->git_clone_all_submodules('qt5', $self->{branch}, @{$self->{'module-subset'}});
