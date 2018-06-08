@@ -1,7 +1,7 @@
 [submodule "qtbase"]
 	path = qtbase
 	url = ../qtbase-os2.git
-	branch = 5.11.0
+	branch = master
 	status = essential
 [submodule "qtsvg"]
 	depends = qtbase
