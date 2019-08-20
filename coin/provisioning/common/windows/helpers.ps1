@@ -27,14 +27,15 @@ function Run-Executable
         $p = Start-Process -FilePath "$Executable" -Wait -PassThru
     } else {
         Write-Host "Running `"$Executable`" with arguments `"$Arguments`""
-        $p = Start-Process -FilePath "$Executable" -ArgumentList $Arguments -Wait -PassThru
+        $p = Start-Process -FilePath "$Executable" -ArgumentList $Arguments -PassThru
+        Wait-Process -InputObject $p
     }
     if ($p.ExitCode -ne 0) {
         throw "Process $($Executable) exited with exit code $($p.ExitCode)"
     }
 }
 
-function Extract-7Zip
+function Extract-tar_gz
 {
     Param (
         [string]$Source,
@@ -53,48 +54,34 @@ function Extract-7Zip
     } else {
         $zipExe = "7z.exe"
     }
-
-    Run-Executable "$zipExe" "x -y `"-o$Destination`" `"$Source`""
+    Run-Executable "cmd.exe"  "/C $zipExe x -y `"$Source`" -so | $zipExe x -y -aoa -si -ttar `"-o$Destination`""
 }
 
-function Extract-Zip
+function Extract-7Zip
 {
     Param (
         [string]$Source,
-        [string]$Destination
+        [string]$Destination,
+        [string]$Filter
     )
     Write-Host "Extracting '$Source' to '$Destination'..."
 
-    New-Item -ItemType Directory -Force -Path $Destination
-    $shell = new-object -com shell.application
-    $zipfile = $shell.Namespace($Source)
-    $destinationFolder = $shell.Namespace($Destination)
-    $destinationFolder.CopyHere($zipfile.Items(), 16)
-}
-
-function Extract-Dev-Folders-From-Zip
-{
-    Param (
-        [string]$package,
-        [string]$zipDir,
-        [string]$installPath
-    )
-
-    $shell = new-object -com shell.application
-
-    Write-Host "Extracting contents of $package"
-    foreach ($subDir in "lib", "include", "bin", "share") {
-        $zip = $shell.Namespace($package + "\" + $zipDir + "\" + $subDir)
-        if ($zip) {
-            Write-Host "Extracting $subDir from zip archive"
-        } else {
-            Write-Host "$subDir is missing from zip archive - skipping"
-            continue
+    if ((Get-Command "7z.exe" -ErrorAction SilentlyContinue) -eq $null) {
+        $zipExe = join-path (${env:ProgramFiles(x86)}, ${env:ProgramFiles}, ${env:ProgramW6432} -ne $null)[0] '7-zip\7z.exe'
+        if (-not (test-path $zipExe)) {
+            $zipExe = "C:\Utils\sevenzip\7z.exe"
+            if (-not (test-path $zipExe)) {
+                throw "Could not find 7-zip."
+            }
         }
-        $destDir = $installPath + "\" + $subdir
-        New-Item $destDir -type directory
-        $destinationFolder = $shell.Namespace($destDir)
-        $destinationFolder.CopyHere($zip.Items(), 16)
+    } else {
+        $zipExe = "7z.exe"
+    }
+
+    if ([string]::IsNullOrEmpty($Filter)) {
+        Run-Executable "$zipExe" "x -y `"-o$Destination`" `"$Source`""
+    } else {
+        Run-Executable "$zipExe" "x -y -aoa `"-o$Destination`" `"$Source`" $Filter"
     }
 }
 
@@ -102,6 +89,17 @@ function BadParam
 {
     Param ([string]$Description)
     throw("You must specify $Description")
+}
+
+function Get-DefaultDownloadLocation
+{
+    return $env:USERPROFILE + "\downloads\"
+}
+
+function Get-DownloadLocation
+{
+    Param ([string]$TargetName = $(BadParam("a target filename")))
+    return (Get-DefaultDownloadLocation) + $TargetName
 }
 
 function Download
@@ -112,6 +110,7 @@ function Download
         [string] $Destination = $(BadParam("a download target location"))
     )
     $ProgressPreference = 'SilentlyContinue'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     try {
         Write-Host "Downloading from cached location ($CachedUrl) to $Destination"
         if ($CachedUrl.StartsWith("http")) {
@@ -137,6 +136,18 @@ function Add-Path
     $Env:PATH = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
 }
 
+function Prepend-Path
+{
+    Param (
+        [string]$Path
+    )
+    Write-Host "Adding $Path to Path"
+
+    $oldPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    [Environment]::SetEnvironmentVariable("Path", "$Path;" + $oldPath, [EnvironmentVariableTarget]::Machine)
+    $Env:PATH = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+}
+
 function Set-EnvironmentVariable
 {
     Param (
@@ -153,10 +164,29 @@ function Is64BitWinHost
     return [environment]::Is64BitOperatingSystem
 }
 
-function isProxyEnabled {
+function IsProxyEnabled {
     return (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').proxyEnable
 }
 
-function getProxy {
+function Get-Proxy {
     return (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').proxyServer
+}
+
+function Remove {
+
+    Param (
+        [string]$Path = $(BadParam("a path"))
+    )
+    Write-Host "Removing $Path"
+    $i = 0
+    While ( Test-Path($Path) ){
+        Try{
+            remove-item -Force -Recurse -Path $Path -ErrorAction Stop
+        }catch{
+            $i +=1
+            if ($i -eq 5) {exit 1}
+            Write-Verbose "$Path locked, trying again in 5"
+            Start-Sleep -seconds 5
+        }
+    }
 }

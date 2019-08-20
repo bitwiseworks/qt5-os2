@@ -5,7 +5,7 @@
 ## Copyright (C) 2017 The Qt Company Ltd.
 ## Contact: http://www.qt.io/licensing/
 ##
-## This file is part of the test suite of the Qt Toolkit.
+## This file is part of the provisioning scripts of the Qt Toolkit.
 ##
 ## $QT_BEGIN_LICENSE:LGPL21$
 ## Commercial License Usage
@@ -40,6 +40,8 @@
 # If called directly from another script, it will exit the parent script
 # as well, if not called in its own subshell with parentheses.
 
+set -ex
+
 function DownloadURL {
     url=$1
     url_alt=$2
@@ -47,15 +49,15 @@ function DownloadURL {
     targetFile=$4
 
     echo "Downloading from primary URL '$url'"
-    curl --fail -L --retry 5 --retry-delay 5 -o "$targetFile" "$url" ||  (
+    curl --fail -L --retry 5 --retry-delay 5 -o "$targetFile" "$url" ||  {
         echo "Failed to download '$url' multiple times"
         echo "Downloading from alternative URL '$url_alt'"
-        curl --fail -L --retry 5 --retry-delay 5 -o "$targetFile" "$url_alt"
-    )
+        curl --fail -L --retry 5 --retry-delay 5 -o "$targetFile" "$url_alt" || { echo 'Failed to download even from alternative url'; exit 1; }
+    }
 
     echo "Checking SHA1 on PKG '$targetFile'"
-    echo "$expectedSha1 *$targetFile" > $targetFile.sha1
-    sha1sum --check $targetFile.sha1
-    rm -f $targetFile.sha1
+    echo "$expectedSha1 *$targetFile" > "$targetFile.sha1"
+    sha1sum --check "$targetFile.sha1"
+    rm -f "$targetFile.sha1"
 }
 

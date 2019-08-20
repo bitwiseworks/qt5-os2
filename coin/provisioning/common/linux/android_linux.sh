@@ -37,8 +37,11 @@
 
 # It also runs update for SDK API, latest SDK tools, latest platform-tools and build-tools version
 
+# shellcheck source=../unix/DownloadURL.sh
 source "${BASH_SOURCE%/*}/../unix/DownloadURL.sh"
+# shellcheck source=../unix/check_and_set_proxy.sh
 source "${BASH_SOURCE%/*}/../unix/check_and_set_proxy.sh"
+# shellcheck source=../unix/SetEnvVar.sh
 source "${BASH_SOURCE%/*}/../unix/SetEnvVar.sh"
 
 targetFolder="/opt/android"
@@ -46,15 +49,15 @@ sdkTargetFolder="$targetFolder/sdk"
 
 basePath="http://ci-files01-hki.intra.qt.io/input/android"
 
-toolsVersion="r25.2.5"
-toolsFile="tools_$toolsVersion-linux.zip"
-ndkVersion="r10e"
+toolsVersion="r26.1.1"
+toolsFile="sdk-tools-linux-4333796.zip"
+ndkVersion="r19c"
 ndkFile="android-ndk-$ndkVersion-linux-x86_64.zip"
-sdkBuildToolsVersion="25.0.2"
-sdkApiLevel="android-21"
+sdkBuildToolsVersion="28.0.3"
+sdkApiLevel="android-28"
 
-toolsSha1="72df3aa1988c0a9003ccdfd7a13a7b8bd0f47fc1"
-ndkSha1="f692681b007071103277f6edc6f91cb5c5494a32"
+toolsSha1="8c7c28554a32318461802c1291d76fccfafde054"
+ndkSha1="fd94d0be6017c6acbd193eb95e09cf4b6f61b834"
 
 toolsTargetFile="/tmp/$toolsFile"
 toolsSourceFile="$basePath/$toolsFile"
@@ -71,33 +74,44 @@ rm "$ndkTargetFile"
 rm "$toolsTargetFile"
 
 echo "Changing ownership of Android files."
-if uname -a |grep -q "el6\|el7"; then
+if uname -a |grep -q "el7"; then
     sudo chown -R qt:wheel "$targetFolder"
 else
     sudo chown -R qt:users "$targetFolder"
 fi
 
-echo "Running SDK manager for platforms;$sdkApiLevel, tools, platform-tools and build-tools;$sdkBuildToolsVersion."
+echo "Running SDK manager for platforms;$sdkApiLevel, platform-tools and build-tools;$sdkBuildToolsVersion."
+# shellcheck disable=SC2031
 if [ "$http_proxy" != "" ]; then
-    proxy_host=$(echo $proxy | cut -d'/' -f3 | cut -d':' -f1)
-    proxy_port=$(echo $proxy | cut -d':' -f3)
-    echo "y" |"$sdkTargetFolder/tools/bin/sdkmanager" --no_https --proxy=http --proxy_host=$proxy_host --proxy_port=$proxy_port "platforms;$sdkApiLevel" "tools" "platform-tools" "build-tools;$sdkBuildToolsVersion"
+    proxy_host=$(echo "$proxy" | cut -d'/' -f3 | cut -d':' -f1)
+    proxy_port=$(echo "$proxy" | cut -d':' -f3)
+    echo "y" |"$sdkTargetFolder/tools/bin/sdkmanager" --no_https --proxy=http --proxy_host="$proxy_host" --proxy_port="$proxy_port" "platforms;$sdkApiLevel" "platform-tools" "build-tools;$sdkBuildToolsVersion"
 else
-    echo "y" |"$sdkTargetFolder/tools/bin/sdkmanager" "platforms;$sdkApiLevel" "tools" "platform-tools" "build-tools;$sdkBuildToolsVersion"
+    echo "y" |"$sdkTargetFolder/tools/bin/sdkmanager" "platforms;$sdkApiLevel" "platform-tools" "build-tools;$sdkBuildToolsVersion"
 fi
+
+echo "Checking the contents of Android SDK..."
+ls -l "$sdkTargetFolder"
 
 SetEnvVar "ANDROID_SDK_HOME" "$sdkTargetFolder"
 SetEnvVar "ANDROID_NDK_HOME" "$targetFolder/android-ndk-$ndkVersion"
+SetEnvVar "ANDROID_NDK_ROOT" "$targetFolder/android-ndk-$ndkVersion"
 SetEnvVar "ANDROID_NDK_HOST" "linux-x86_64"
 SetEnvVar "ANDROID_API_VERSION" "$sdkApiLevel"
 
+# shellcheck disable=SC2129
 echo "Android SDK tools = $toolsVersion" >> ~/versions.txt
 echo "Android SDK Build Tools = $sdkBuildToolsVersion" >> ~/versions.txt
 echo "Android SDK API level = $sdkApiLevel" >> ~/versions.txt
 echo "Android NDK = $ndkVersion" >> ~/versions.txt
 
-cd $sdkTargetFolder/tools/bin
+cd "$sdkTargetFolder/tools/bin"
+./sdkmanager --install "emulator"
 echo "y" | ./sdkmanager --install "system-images;android-21;google_apis;x86"
+
+echo "Checking the contents of Android SDK again..."
+ls -l "$sdkTargetFolder"
+
 echo "no" | ./avdmanager create avd -n x86emulator -k "system-images;android-21;google_apis;x86" -c 2048M -f
 # Purely informative, show the list of avd devices
 ./avdmanager list avd

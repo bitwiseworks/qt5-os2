@@ -4,7 +4,7 @@
 ## Copyright (C) 2017 Pelagicore AG
 ## Contact: http://www.qt.io/licensing/
 ##
-## This file is part of the test suite of the Qt Toolkit.
+## This file is part of the provisioning scripts of the Qt Toolkit.
 ##
 ## $QT_BEGIN_LICENSE:LGPL21$
 ## Commercial License Usage
@@ -57,5 +57,4 @@ Download $externalUrl $internalUrl $package
 Verify-Checksum $package $sha1
 Write-Host "Installing $package..."
 Run-Executable $package "/q"
-Write-Host "Remove $package..."
-Remove-Item -Force -Path $package
+Remove $package
