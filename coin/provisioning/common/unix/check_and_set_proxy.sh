@@ -4,7 +4,7 @@
 ## Copyright (C) 2017 The Qt Company Ltd.
 ## Contact: http://www.qt.io/licensing/
 ##
-## This file is part of the test suite of the Qt Toolkit.
+## This file is part of the provisioning scripts of the Qt Toolkit.
 ##
 ## $QT_BEGIN_LICENSE:LGPL21$
 ## Commercial License Usage
@@ -34,6 +34,7 @@
 
 set -ex
 
+# shellcheck source=../shared/http_proxy.txt
 source "${BASH_SOURCE%/*}/../shared/http_proxy.txt"
 
-(wget -q -e "http_proxy=$proxy" --spider proxy.intra.qt.io && echo "Setting http_proxy to $proxy" && export http_proxy=$proxy) || echo "Proxy not detected at $proxy"
+{ wget -q -e "http_proxy=$proxy" --spider proxy.intra.qt.io && echo "Setting http_proxy to $proxy" && export http_proxy=$proxy; } || echo "Proxy not detected at $proxy"
