@@ -6,8 +6,8 @@
 [submodule "qtsvg"]
 	depends = qtbase
 	path = qtsvg
-	url = ../qtsvg.git
-	branch = 5.13.0
+	url = ../qtsvg-os2.git
+	branch = master
 	status = addon
 [submodule "qtdeclarative"]
 	depends = qtbase
