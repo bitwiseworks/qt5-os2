@@ -40,8 +40,8 @@
 	depends = qtbase
 	recommends = qtdeclarative qtactiveqt
 	path = qttools
-	url = ../qttools.git
-	branch = 5.13.0
+	url = ../qttools-os2.git
+	branch = master
 	status = essential
 [submodule "qtxmlpatterns"]
 	depends = qtbase
