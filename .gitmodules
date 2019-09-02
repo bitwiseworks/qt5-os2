@@ -13,8 +13,8 @@
 	depends = qtbase
 	recommends = qtsvg
 	path = qtdeclarative
-	url = ../qtdeclarative.git
-	branch = 5.13.0
+	url = ../qtdeclarative-os2.git
+	branch = master
 	status = essential
 [submodule "qtactiveqt"]
 	depends = qtbase
