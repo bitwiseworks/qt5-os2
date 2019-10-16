@@ -4,7 +4,10 @@ This is a root repository of the Qt software development framework version 5 for
 
 Currently, the following modules have been (or are being) ported to OS/2:
 
-* QtBase
+* Qt Base
+* Qt Declarative
+* Qt SVG
+* Qt Tools
 
 Please consult to README.md files of individual modules for more information about the ports.
 
