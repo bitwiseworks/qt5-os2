@@ -200,22 +200,22 @@
 	depends = qtbase
 	recommends = qtdeclarative
 	path = qtwebsockets
-	url = ../qtwebsockets.git
-	branch = 5.13.1
+	url = ../qtwebsockets-os2.git
+	branch = master
 	status = addon
 [submodule "qtwebchannel"]
 	depends = qtbase
 	recommends = qtdeclarative qtwebsockets
 	path = qtwebchannel
-	url = ../qtwebchannel.git
-	branch = 5.13.1
+	url = ../qtwebchannel-os2.git
+	branch = master
 	status = addon
 [submodule "qtwebengine"]
 	depends = qtdeclarative
 	recommends = qtquickcontrols qtquickcontrols2 qtlocation qtwebchannel qttools
 	path = qtwebengine
-	url = ../qtwebengine.git
-	branch = 5.13.1
+	url = ../qtwebengine-os2.git
+	branch = master
 	status = addon
 	priority = 10
 [submodule "qtcanvas3d"]
