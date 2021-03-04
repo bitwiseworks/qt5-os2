@@ -8,6 +8,7 @@ Currently, the following modules have been (or are being) ported to OS/2:
 * Qt Declarative
 * Qt SVG
 * Qt Tools
+* Qt Multimedia
 
 Please consult to README.md files of individual modules for more information about the ports.
 
