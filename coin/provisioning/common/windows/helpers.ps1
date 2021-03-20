@@ -3,7 +3,7 @@ function Verify-Checksum
     Param (
         [string]$File=$(throw("You must specify a filename to get the checksum of.")),
         [string]$Expected=$(throw("Checksum required")),
-        [ValidateSet("sha1","md5")][string]$Algorithm="sha1"
+        [ValidateSet("sha256","sha1","md5")][string]$Algorithm="sha1"
     )
     Write-Host "Verifying checksum of $File"
     $fs = new-object System.IO.FileStream $File, "Open"
@@ -204,6 +204,38 @@ function Get-Proxy {
     return (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').proxyServer
 }
 
+function Retry{
+    <#
+    usage:
+    Retry{CODE}
+    Retry{CODE} <num of retries> <delay_s>
+    #delay is in seconds
+    #>
+    Param(
+        [Parameter(mandatory=$true)]
+        [scriptblock]$command,
+        [int][ValidateRange(1, 20)]$retry = 5,
+        [int][ValidateRange(1, 60)]$delay_s = 5
+    )
+    $success=$false
+    $retry_count=0
+    do{
+        try {
+            Invoke-Command -ScriptBlock $command
+            $success=$true
+        }
+        catch {
+            $retry_count++
+            Write-Host "Error: $_, try: $retry_count, retrying in $delay_s seconds"
+            Start-Sleep -Seconds $delay_s
+        }
+    } until ($success -or $retry+1 -le $retry_count)
+
+    if (-not $success) {
+        Throw("Failed to run command successfully in $retry_count tries")
+    }
+}
+
 function Remove {
 
     Param (
@@ -221,4 +253,24 @@ function Remove {
             Start-Sleep -seconds 5
         }
     }
+}
+
+function DisableSchedulerTask {
+
+    Param (
+        [string]$Task = $(BadParam("a task"))
+    )
+
+    Write-Host "Disabling $Task from Task Scheduler"
+    SCHTASKS /Change /TN "Microsoft\Windows\$Task" /DISABLE
+}
+
+function DeleteSchedulerTask {
+
+   Param (
+        [string]$Task = $(BadParam("a task"))
+    )
+
+    Write-Host "Disabling $Task from Task Scheduler"
+    SCHTASKS /DELETE /TN "Microsoft\Windows\$Task" /F
 }

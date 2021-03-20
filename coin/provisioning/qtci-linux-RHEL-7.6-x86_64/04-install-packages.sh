@@ -2,7 +2,7 @@
 
 #############################################################################
 ##
-## Copyright (C) 2017 The Qt Company Ltd.
+## Copyright (C) 2020 The Qt Company Ltd.
 ## Contact: http://www.qt.io/licensing/
 ##
 ## This file is part of the provisioning scripts of the Qt Toolkit.
@@ -80,10 +80,14 @@ installPackages+=(pulseaudio-libs-devel)
 installPackages+=(libXtst-devel)
 installPackages+=(nspr-devel)
 installPackages+=(nss-devel)
+installPackages+=(rh-nodejs12-nodejs)
+installPackages+=(rh-nodejs12-nodejs-devel)
 # For Android builds
 installPackages+=(java-1.8.0-openjdk-devel)
 # For receiving shasum
 installPackages+=(perl-Digest-SHA)
+# For Clang 11 tests
+installPackages+=(perl-Digest-MD5)
 # INTEGRITY requirements
 installPackages+=(glibc.i686)
 # Enable Qt Bluetooth
@@ -115,6 +119,13 @@ installPackages+=(unixODBC-devel)
 installPackages+=(unixODBC)
 # Vulkan support
 installPackages+=(vulkan-devel)
+# Conan: For Python build
+installPackages+=(xz-devel)
+installPackages+=(zlib-devel)
+installPackages+=(libffi-devel)
+installPackages+=(libsqlite3x-devel)
+# Build.pl
+installPackages+=(perl-Data-Dumper)
 
 sudo yum -y install "${installPackages[@]}"
 
@@ -124,6 +135,9 @@ sudo ln -s /opt/rh/rh-python36/root/usr/bin/pip3 /usr/local/bin/pip3
 # working, but we can use installed pip
 sudo pip install --upgrade pip
 sudo pip install virtualenv wheel
+
+# Needed by packaging scripts
+sudo /usr/local/bin/pip3 install colorlog --user
 
 sudo /usr/local/bin/pip3 install wheel
 # Install all needed packages in a special wheel cache directory
