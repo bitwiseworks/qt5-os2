@@ -37,6 +37,8 @@
 
 # It also runs update for SDK API, latest SDK tools, latest platform-tools and build-tools version
 
+set -e
+
 # shellcheck source=../unix/DownloadURL.sh
 source "${BASH_SOURCE%/*}/../unix/DownloadURL.sh"
 # shellcheck source=../unix/check_and_set_proxy.sh
@@ -51,13 +53,13 @@ basePath="http://ci-files01-hki.intra.qt.io/input/android"
 
 toolsVersion="r26.1.1"
 toolsFile="sdk-tools-linux-4333796.zip"
-ndkVersion="r19c"
+ndkVersion="r20"
 ndkFile="android-ndk-$ndkVersion-linux-x86_64.zip"
 sdkBuildToolsVersion="28.0.3"
 sdkApiLevel="android-28"
 
 toolsSha1="8c7c28554a32318461802c1291d76fccfafde054"
-ndkSha1="fd94d0be6017c6acbd193eb95e09cf4b6f61b834"
+ndkSha1="8665fc84a1b1f0d6ab3b5fdd1e30200cc7b9adff"
 
 toolsTargetFile="/tmp/$toolsFile"
 toolsSourceFile="$basePath/$toolsFile"
@@ -80,14 +82,25 @@ else
     sudo chown -R qt:users "$targetFolder"
 fi
 
+# Stop the sdkmanager from printing thousands of lines of #hashmarks.
+# Run the following command under `eval` or `sh -c` so that the shell properly splits it.
+sdkmanager_no_progress_bar_cmd="tr '\r' '\n'  |  grep -v '^\[[ =]*\]'"
+# But don't let the pipeline hide sdkmanager failures.
+set -o pipefail
+
 echo "Running SDK manager for platforms;$sdkApiLevel, platform-tools and build-tools;$sdkBuildToolsVersion."
 # shellcheck disable=SC2031
 if [ "$http_proxy" != "" ]; then
     proxy_host=$(echo "$proxy" | cut -d'/' -f3 | cut -d':' -f1)
     proxy_port=$(echo "$proxy" | cut -d':' -f3)
-    echo "y" |"$sdkTargetFolder/tools/bin/sdkmanager" --no_https --proxy=http --proxy_host="$proxy_host" --proxy_port="$proxy_port" "platforms;$sdkApiLevel" "platform-tools" "build-tools;$sdkBuildToolsVersion"
+    echo "y" | "$sdkTargetFolder/tools/bin/sdkmanager"  \
+                   --no_https --proxy=http --proxy_host="$proxy_host" --proxy_port="$proxy_port"  \
+                   "platforms;$sdkApiLevel" "platform-tools" "build-tools;$sdkBuildToolsVersion"  \
+        | eval $sdkmanager_no_progress_bar_cmd
 else
-    echo "y" |"$sdkTargetFolder/tools/bin/sdkmanager" "platforms;$sdkApiLevel" "platform-tools" "build-tools;$sdkBuildToolsVersion"
+    echo "y" | "$sdkTargetFolder/tools/bin/sdkmanager"  \
+                   "platforms;$sdkApiLevel" "platform-tools" "build-tools;$sdkBuildToolsVersion"  \
+        | eval $sdkmanager_no_progress_bar_cmd
 fi
 
 echo "Checking the contents of Android SDK..."
@@ -106,8 +119,11 @@ echo "Android SDK API level = $sdkApiLevel" >> ~/versions.txt
 echo "Android NDK = $ndkVersion" >> ~/versions.txt
 
 cd "$sdkTargetFolder/tools/bin"
-./sdkmanager --install "emulator"
-echo "y" | ./sdkmanager --install "system-images;android-21;google_apis;x86"
+./sdkmanager --install "emulator"  \
+    | eval $sdkmanager_no_progress_bar_cmd
+echo "y" | ./sdkmanager --install "system-images;android-21;google_apis;x86"  \
+    | eval $sdkmanager_no_progress_bar_cmd
+
 
 echo "Checking the contents of Android SDK again..."
 ls -l "$sdkTargetFolder"
