@@ -1,6 +1,6 @@
 #############################################################################
 ##
-## Copyright (C) 2018 The Qt Company Ltd.
+## Copyright (C) 2020 The Qt Company Ltd.
 ## Contact: http://www.qt.io/licensing/
 ##
 ## This file is part of the provisioning scripts of the Qt Toolkit.
@@ -30,23 +30,11 @@
 ## $QT_END_LICENSE$
 ##
 #############################################################################
+. "$PSScriptRoot\helpers.ps1"
 
-# Visual Studio $version was installed manually using $installer.
-$version = "2015 update 3"
-$version_number ="14.0.25420.1"
-$installer = "en_visual_studio_professional_2015_with_update_3_x86_x64_web_installer_8922978.exe"
+# This script will install Azure singtool using Dotnet SDK
+$dotnet = "C:\Program Files\dotnet\dotnet.exe"
 
-# default plus following components were selected:
-# * Visual C++
-#   - Common Tools for Visual C++ 2015
-# * Universal Windows App Development Tools
-#   - Tools (1.4.1) and Windows SDK (10.0.14393)
-#   - Windows 10 SDK (10.0.10586)
-#   - Windows 10 SDK (10.0.10240)
-# * Common Tools
-#   -Visual Studio Extensibility Tools Update 3
+$version = "2.0.17"
+Run-Executable "$dotnet" "tool install --global AzureSignTool --version $version"
 
-# NOTE! Windows SDK 10.0.14393 installation failed through visual studio installer so it was installed using $sdk_installer
-$sdk_installer = "http://ci-files01-hki.intra.qt.io/input/windows/sdksetup.exe"
-
-echo "Visual Studio = $version version $version_number" >> ~\versions.txt
